@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <unistd.h>
 
 #define SZ 26
 
@@ -115,5 +116,6 @@ int main()
     printf("malloc:\t");
     print(p, SZ);
 
+	sleep(2);
     return 0;
 }
