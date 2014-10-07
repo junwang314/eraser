@@ -5,19 +5,34 @@
 #include "util.h"
 
 static pthread_t e_cleaner;
-static void* (*real_free)(void *)=NULL;
+static void* (*real_free)(void *) = NULL;
+static int e_exit = 0;
+
+void e_terminator()
+{
+	e_ON = 0;
+
+	fprintf(stderr, "About to exit...\n");
+	e_exit = 1;
+	pthread_join(e_cleaner, NULL);
+
+	e_ON = 1;
+}
 
 void* cleaner()
 {
 	e_ON = 0;
-	e_head = 0;
-	e_tail = 0;
-	fprintf(stderr, "This is cleaner!\n");
 	void *p;
-	while (1) {
-		p = e_deque();
-    	memset(p, 0, malloc_usable_size(p));
-    	real_free(p);
+	fprintf(stderr, "This is cleaner!\n");
+	while (!e_exit) {
+		//fprintf(stderr, "cleaner loop...\n");
+		if (p = e_queue_deque()) {
+			memset(p, 0x30, malloc_usable_size(p));
+    		real_free(p);
+		}
+		else {
+			usleep(100);
+		}
 	}
 	return NULL;
 }
