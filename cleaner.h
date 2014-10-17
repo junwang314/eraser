@@ -12,7 +12,7 @@ void e_terminator()
 {
 	e_ON = 0;
 
-	fprintf(stderr, "About to exit...\n");
+	fprintf(stdout, "About to exit...\n");
 	e_exit = 1;
 	pthread_join(e_cleaner, NULL);
 
@@ -23,9 +23,9 @@ void* cleaner()
 {
 	e_ON = 0;
 	void *p;
-	fprintf(stderr, "This is cleaner!\n");
+	fprintf(stdout, "This is cleaner!\n");
 	while (!e_exit) {
-		//fprintf(stderr, "cleaner loop...\n");
+		//fprintf(stdout, "cleaner loop...\n");
 		if (p = e_queue_deque()) {
 			memset(p, 0x30, malloc_usable_size(p));
     		real_free(p);

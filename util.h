@@ -43,7 +43,7 @@ void *e_queue_deque()
 	}
 	p = e_queue[e_tail];
 	e_tail = (e_tail + 1) % QUEUE_SIZE;
-	//fprintf(stderr, "%s: p=%p\n", __func__, p);
+	//fprintf(stdout, "%s: p=%p\n", __func__, p);
 	sem_post(&sem_empty);
 	return p;
 }
