@@ -47,6 +47,7 @@ void free(void *p)
 #ifdef FORK
 	e_ON = 0;
 	if(e_pid != getpid()) {
+		e_pid = getpid();
 		fprintf(stdout, "Process fork detected\n");
 		//FILE *fp = fopen("eraser.log", "a");
 		//if (!fp)
@@ -56,7 +57,6 @@ void free(void *p)
 		//		(unsigned long)getpid());
 		//if(fp!=stdout)
 		//	fclose(fp);
-		e_pid = getpid();
 		pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	}
 	e_ON = 1;

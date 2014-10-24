@@ -86,7 +86,6 @@ void print(unsigned char *p, int size)
         printf("%02x ", p[i]);
     }
     printf("\n");
-#endif
     return;
 }
 

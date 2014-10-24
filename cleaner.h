@@ -12,7 +12,7 @@ void e_terminator()
 {
 	e_ON = 0;
 
-	fprintf(stdout, "About to exit...\n");
+	fprintf(stdout, "Eraser about to exit...\n");
 	e_exit = 1;
 	pthread_join(e_cleaner, NULL);
 
