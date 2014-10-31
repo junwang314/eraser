@@ -1,4 +1,4 @@
-all:test mfree.so mfree_fork.so
+all:test mfree.so mfree_fork.so mfree_spec.so
 
 test:test.c
 	gcc -Wl,--no-as-needed -ldl -g test.c
@@ -8,6 +8,9 @@ mfree.so:mfree.c cleaner.h util.h
 
 mfree_fork.so:mfree.c cleaner.h util.h
 	gcc -ldl -pthread -shared -fPIC -g -o mfree_fork.so mfree.c -DFORK
+
+mfree_spec.so:mfree.c cleaner.h util.h
+	gcc -ldl -pthread -shared -fPIC -g -o mfree_spec.so mfree.c -DSPEC
 
 run:all
 	LD_PRELOAD=./mfree_fork.so ./a.out

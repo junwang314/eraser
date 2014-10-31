@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <malloc.h>
+#include <errno.h>
 
 #include "cleaner.h"
 #include "util.h"
@@ -24,6 +25,21 @@ static void mtrace_init(void)
     if (NULL == real_free) {
         fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
     }
+
+	/* For SPEC benchmark, some processes for counting purpose are also
+	 * created. We do not do heap erasing for them.
+	 * Only the process named "run_base_ref" is what we need to protect.
+	 */
+#ifdef SPEC
+	const char *pstr = "../run_base_ref";
+	int isTarget;
+	isTarget = !strncmp(program_invocation_name, pstr, strlen(pstr));
+	if (!isTarget) {
+		e_ON = 0;
+		return;
+	}
+#endif
+
 	pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	if(atexit(e_terminator)) {
 		fprintf(stdout, "Error: atexit(e_terminator) failed\n");
