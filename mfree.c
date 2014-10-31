@@ -24,7 +24,6 @@ static void mtrace_init(void)
     if (NULL == real_free) {
         fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
     }
-	e_queue_init();
 	pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	if(atexit(e_terminator)) {
 		fprintf(stdout, "Error: atexit(e_terminator) failed\n");
@@ -40,7 +39,7 @@ int gettid(void)
 
 void free(void *p)
 {
-    if(real_free==NULL) {
+    if(real_free == NULL) {
         mtrace_init();
     }
 
@@ -70,8 +69,11 @@ void free(void *p)
 		return;
 	}
 	e_ON = 0;
-	e_queue_enque(p);
+	if (!e_thq) {
+		e_thq = e_get_thread_queue();
+	}
 	//fprintf(stdout, "%d/%d: free(%p)\n", getpid(), gettid(), p);
+	e_queue_enque(p, e_thq);
 	//printf("%d/%d: free(%p)\n", getpid(), gettid(), p);
 	e_ON = 1;
 	return;

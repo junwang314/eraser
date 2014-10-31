@@ -2,49 +2,84 @@
 #define __UTIL_H
 
 #include <sched.h>
-#include <semaphore.h>
+#include <assert.h>
+
+#define QUEUE_SIZE 1024
+
+/* per-application-thread queue data structure*/
+typedef struct e_thread_queue {
+	unsigned produceCount;
+	unsigned consumeCount;
+	void **queue;
+	struct e_thread_queue *next;
+	pthread_t tid;
+} e_thread_queue;
 
 static __thread int e_ON = 1;
+static __thread e_thread_queue *e_thq = NULL;
 
+static e_thread_queue *e_thread_queue_head = NULL;
 
-#define QUEUE_ELEMENTS 5000
-#define QUEUE_SIZE (QUEUE_ELEMENTS + 1)
-static void* e_queue[QUEUE_SIZE];
-static int e_head, e_tail;
-static sem_t sem_full;
-static sem_t sem_empty;
-
-static struct timespec interval;
-
-void e_queue_init()
+static inline void e_thread_queue_init(e_thread_queue * q, pthread_t tid)
 {
-	e_head = 0;
-	e_tail = 0;
-	sem_init(&sem_empty, 0, QUEUE_ELEMENTS);
-	sem_init(&sem_full, 0, 0);
-	interval.tv_sec = 1;
-	interval.tv_nsec = 0;
+	q->produceCount = 0;
+	q->consumeCount = 0;
+	q->queue = malloc(QUEUE_SIZE*sizeof(void *));
+	//q->next field should be populated with __sync_bool_compare_and_swap()
+	q->tid = tid;
 }
 
-void e_queue_enque(void *p)
+/* e_ON is 0 when calling this function */
+e_thread_queue* e_get_thread_queue()
 {
-	sem_wait(&sem_empty);
-	e_queue[e_head] = p;
-	e_head = (e_head + 1) % QUEUE_SIZE;
+	e_thread_queue *q, *oldhead;
+	pthread_t self = pthread_self();
+	//try to reuse a e_thread_queue first
+	for (q = e_thread_queue_head; q!=NULL; q=q->next) {
+		if (q->tid == 0 && __sync_bool_compare_and_swap(&q->tid, 0, self)) {
+			return q;
+		}
+	}
+	//allocate new queue
+	q = (e_thread_queue *)malloc(sizeof(*q));
+	assert(q);
+	//insert new queue as new head
+	do {
+		oldhead = e_thread_queue_head;
+		q->next = oldhead;
+	} while(!__sync_bool_compare_and_swap(&e_thread_queue_head, oldhead, q));
+	e_thread_queue_init(q, self);
+	fprintf(stdout, "%s: %lu, q=%p\n", __func__, self, q);
+	return q;
+}
+
+static inline unsigned toIndex (unsigned i)
+{
+	return (unsigned)(i & (QUEUE_SIZE-1));
+}
+
+/* e_ON is 0 when calling this function */
+void e_queue_enque(void *p, e_thread_queue *q)
+{
+	while (q->produceCount - q->consumeCount >= QUEUE_SIZE) {
+		//sched_yeild();
+		fprintf(stdout, "%s: queue full\n", __func__);
+		sleep(0);
+	} 
+	q->queue[toIndex(q->produceCount)] = p;
+	q->produceCount++;
 	//fprintf(stderr, "%s: p=%p\n", __func__, p);
-	sem_post(&sem_full);
 }
 
-void *e_queue_deque()
+void *e_queue_deque(e_thread_queue *q)
 {
 	void *p;
-	if (sem_timedwait(&sem_full, &interval)) {
+	if (q->produceCount == q->consumeCount) {
 		return NULL;
 	}
-	p = e_queue[e_tail];
-	e_tail = (e_tail + 1) % QUEUE_SIZE;
+	p = q->queue[toIndex(q->consumeCount)];
+	q->consumeCount++;
 	//fprintf(stdout, "%s: p=%p\n", __func__, p);
-	sem_post(&sem_empty);
 	return p;
 }
 

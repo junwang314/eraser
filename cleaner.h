@@ -23,15 +23,21 @@ void* cleaner()
 {
 	e_ON = 0;
 	void *p;
+	e_thread_queue *q;
 	fprintf(stdout, "This is cleaner!\n");
+	while(!e_thread_queue_head) {
+		sleep(0);
+	}
 	while (!e_exit) {
 		//fprintf(stdout, "cleaner loop...\n");
-		if (p = e_queue_deque()) {
-			memset(p, 0x30, malloc_usable_size(p));
-    		real_free(p);
-		}
-		else {
-			usleep(100);
+		for (q = e_thread_queue_head; q!=NULL; q=q->next) {
+			if (p = e_queue_deque(q)) {
+				memset(p, 0x30, malloc_usable_size(p));
+    			real_free(p);
+			}
+			else {
+				usleep(100);
+			}
 		}
 	}
 	return NULL;

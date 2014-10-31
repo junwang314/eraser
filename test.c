@@ -78,6 +78,13 @@ people extending or adapting this malloc.
 #define chunksize(p)         ((p)->size & ~(SIZE_BITS))
 
 
+struct test {
+	int a;
+	int b;
+	float c;
+	void *d;
+	int *f;
+};
 
 void print(unsigned char *p, int size)
 {
@@ -116,6 +123,14 @@ int main()
     printf("malloc:\t");
     print(p, SZ);
 
-	sleep(2);
+	struct test *ptr = NULL;
+	printf("%d, %d\n", sizeof(*ptr), sizeof(struct test));
+
+	sleep(1);
+	for (i=0; i<10000; i++) {
+		p = malloc(i);
+		printf("%p\n", p);
+		free(p);
+	}
     return 0;
 }
