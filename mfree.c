@@ -13,7 +13,6 @@
 #include "cleaner.h"
 #include "util.h"
 
-static int do_fprintf=1;
 static pid_t e_pid;
 
 static void mtrace_init(void)

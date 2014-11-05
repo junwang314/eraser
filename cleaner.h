@@ -31,7 +31,7 @@ void* cleaner()
 	while (!e_exit) {
 		//fprintf(stdout, "cleaner loop...\n");
 		for (q = e_thread_queue_head; q!=NULL; q=q->next) {
-			if (p = e_queue_deque(q)) {
+			if ((p = e_queue_deque(q))) {
 				memset(p, 0x30, malloc_usable_size(p));
     			real_free(p);
 			}
