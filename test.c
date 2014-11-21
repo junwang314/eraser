@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <unistd.h>
+#include <string.h>
 
 #define SZ 26
 
@@ -100,6 +101,7 @@ int main()
 {
     int i;
     unsigned char *p;
+    unsigned char *q;
     p = (unsigned char *)malloc(SZ);
     printf("malloc:\t");
     print(p, SZ);
@@ -126,11 +128,19 @@ int main()
 	struct test *ptr = NULL;
 	printf("%d, %d\n", sizeof(*ptr), sizeof(struct test));
 
-	sleep(1);
-	for (i=0; i<10000; i++) {
-		p = malloc(i);
-		printf("%p\n", p);
-		free(p);
-	}
+	//for (i=0; i<10000; i++) {
+	//	p = malloc(i);
+	//	printf("%p\n", p);
+	//	free(p);
+	//}
+
+    p = malloc(SZ);
+    for (i=0; i<SZ; i++) {
+        p[i] = 0xff;
+    }
+    q = malloc(2*SZ);
+    print(q, 2*SZ);
+    memcpy(q, p, SZ);
+    print(q, 2*SZ);
     return 0;
 }

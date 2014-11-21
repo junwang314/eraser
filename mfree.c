@@ -20,9 +20,26 @@ static void mtrace_init(void)
 	e_ON = 0;
 
 	e_pid = getpid();
+
     real_free = dlsym(RTLD_NEXT, "free");
     if (NULL == real_free) {
         fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+    }
+
+    real_malloc = dlsym(RTLD_NEXT, "malloc");
+    if (NULL == real_malloc) {
+        fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+    }
+    if (fmalloc==NULL) {
+        fmalloc = fopen("malloc.log", "a");
+    }
+
+    real_memcpy = dlsym(RTLD_NEXT, "memcpy");
+    if (NULL == real_memcpy) {
+        fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+    }
+    if (fmemcpy==NULL) {
+        fmemcpy = fopen("memcpy.log", "a");
     }
 
 	/* For SPEC benchmark, some processes for counting purpose are also
@@ -92,4 +109,32 @@ void free(void *p)
 	//printf("%d/%d: free(%p)\n", getpid(), gettid(), p);
 	e_ON = 1;
 	return;
+}
+
+void *malloc(size_t size)
+{
+    if(real_malloc == NULL) {
+        mtrace_init();
+    }
+    if (!e_ON) {
+        return real_malloc(size);
+    }
+	e_ON = 0;
+	fprintf(fmalloc, "malloc(%d)\n", size);
+	e_ON = 1;
+    return real_malloc(size);
+}
+
+void *memcpy(void *dest, const void *src, size_t n)
+{
+    if(real_memcpy == NULL) {
+        mtrace_init();
+    }
+    if (!e_ON) {
+        return real_memcpy(dest, src, n);
+    }
+    e_ON = 0;
+	fprintf(fmemcpy, "memcpy(%p, %p, %d)\n", dest, src, n);
+    e_ON = 1;
+    return real_memcpy(dest, src, n);
 }

@@ -6,7 +6,12 @@
 
 static pthread_t e_cleaner;
 static void* (*real_free)(void *) = NULL;
+static void* (*real_malloc)(size_t) = NULL;
+static void* (*real_memcpy)(void *, const void *, size_t) = NULL;
 static int e_exit = 0;
+
+static FILE* fmalloc = NULL;
+static FILE* fmemcpy = NULL;
 
 void e_terminator()
 {
@@ -15,6 +20,12 @@ void e_terminator()
 	fprintf(stdout, "Eraser about to exit...\n");
 	e_exit = 1;
 	pthread_join(e_cleaner, NULL);
+    if (fmalloc) {
+        fclose(fmalloc);
+    }
+    if (fmemcpy) {
+        fclose(fmemcpy);
+    }
 
 	e_ON = 1;
 }
