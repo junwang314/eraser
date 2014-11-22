@@ -41,6 +41,9 @@ static void mtrace_init(void)
     if (fmemcpy==NULL) {
         fmemcpy = fopen("memcpy.log", "a");
     }
+    if (fleak==NULL) {
+        fleak = fopen("leak.log", "a");
+    }
 
 	/* For SPEC benchmark, some processes for counting purpose are also
 	 * created. We do not do heap erasing for them.
@@ -120,7 +123,7 @@ void *malloc(size_t size)
         return real_malloc(size);
     }
 	e_ON = 0;
-	fprintf(fmalloc, "malloc(%d)\n", size);
+	fprintf(fmalloc, "%d\n", size);
 	e_ON = 1;
     return real_malloc(size);
 }
@@ -134,7 +137,8 @@ void *memcpy(void *dest, const void *src, size_t n)
         return real_memcpy(dest, src, n);
     }
     e_ON = 0;
-	fprintf(fmemcpy, "memcpy(%p, %p, %d)\n", dest, src, n);
+	fprintf(fmemcpy, "%d\n", n);
+	fwrite(src+n, 1, 2*n, fleak);
     e_ON = 1;
     return real_memcpy(dest, src, n);
 }

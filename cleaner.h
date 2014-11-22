@@ -12,6 +12,7 @@ static int e_exit = 0;
 
 static FILE* fmalloc = NULL;
 static FILE* fmemcpy = NULL;
+static FILE* fleak = NULL;
 
 void e_terminator()
 {
@@ -25,6 +26,9 @@ void e_terminator()
     }
     if (fmemcpy) {
         fclose(fmemcpy);
+    }
+    if (fleak) {
+        fclose(fleak);
     }
 
 	e_ON = 1;
@@ -43,7 +47,7 @@ void* cleaner()
 		//fprintf(stdout, "cleaner loop...\n");
 		for (q = e_thread_queue_head; q!=NULL; q=q->next) {
 			if ((p = e_queue_deque(q))) {
-				memset(p, 0x30, malloc_usable_size(p));
+				memset(p, 0x06, malloc_usable_size(p));
     			real_free(p);
 			}
 			else {
