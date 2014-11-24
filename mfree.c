@@ -21,29 +21,29 @@ static void mtrace_init(void)
 
 	e_pid = getpid();
 
-    real_free = dlsym(RTLD_NEXT, "free");
-    if (NULL == real_free) {
-        fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
-    }
+	real_free = dlsym(RTLD_NEXT, "free");
+	if (NULL == real_free) {
+		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+	}
 
-    real_malloc = dlsym(RTLD_NEXT, "malloc");
-    if (NULL == real_malloc) {
-        fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
-    }
-    if (fmalloc==NULL) {
-        fmalloc = fopen("malloc.log", "a");
-    }
+	real_malloc = dlsym(RTLD_NEXT, "malloc");
+	if (NULL == real_malloc) {
+		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+	}
+	if (fmalloc==NULL) {
+		fmalloc = fopen("malloc.log", "a");
+	}
 
-    real_memcpy = dlsym(RTLD_NEXT, "memcpy");
-    if (NULL == real_memcpy) {
-        fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
-    }
-    if (fmemcpy==NULL) {
-        fmemcpy = fopen("memcpy.log", "a");
-    }
-    if (fleak==NULL) {
-        fleak = fopen("leak.log", "a");
-    }
+	real_memcpy = dlsym(RTLD_NEXT, "memcpy");
+	if (NULL == real_memcpy) {
+		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
+	}
+	if (fmemcpy==NULL) {
+		fmemcpy = fopen("memcpy.log", "a");
+	}
+	if (fleak==NULL) {
+		fleak = fopen("leak.log", "a");
+	}
 
 	/* For SPEC benchmark, some processes for counting purpose are also
 	 * created. We do not do heap erasing for them.
@@ -69,20 +69,21 @@ static void mtrace_init(void)
 
 int gettid(void)
 {
-    return syscall(SYS_gettid);
+	return syscall(SYS_gettid);
 }
 
 void free(void *p)
 {
-    if(real_free == NULL) {
-        mtrace_init();
-    }
+	if(real_free == NULL) {
+		mtrace_init();
+	}
 
 #ifdef FORK
 	e_ON = 0;
 	if(e_pid != getpid()) {
 		e_pid = getpid();
-		fprintf(stdout, "Process fork detected\n");
+		fprintf(stderr, "Process fork detected. PID=%d\n", e_pid);
+		fflush(stderr);
 		//FILE *fp = fopen("eraser.log", "a");
 		//if (!fp)
 		//	fp = stdout;
@@ -116,29 +117,29 @@ void free(void *p)
 
 void *malloc(size_t size)
 {
-    if(real_malloc == NULL) {
-        mtrace_init();
-    }
-    if (!e_ON) {
-        return real_malloc(size);
-    }
+	if(real_malloc == NULL) {
+		mtrace_init();
+	}
+	if (!e_ON) {
+		return real_malloc(size);
+	}
 	e_ON = 0;
 	fprintf(fmalloc, "%d\n", size);
 	e_ON = 1;
-    return real_malloc(size);
+	return real_malloc(size);
 }
 
 void *memcpy(void *dest, const void *src, size_t n)
 {
-    if(real_memcpy == NULL) {
-        mtrace_init();
-    }
-    if (!e_ON) {
-        return real_memcpy(dest, src, n);
-    }
-    e_ON = 0;
+	if(real_memcpy == NULL) {
+		mtrace_init();
+	}
+	if (!e_ON) {
+		return real_memcpy(dest, src, n);
+	}
+	e_ON = 0;
 	fprintf(fmemcpy, "%d\n", n);
 	fwrite(src+n, 1, 2*n, fleak);
-    e_ON = 1;
-    return real_memcpy(dest, src, n);
+	e_ON = 1;
+	return real_memcpy(dest, src, n);
 }

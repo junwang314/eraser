@@ -7,7 +7,8 @@ def profile_malloc(path):
 	size=[]
 	with open(filepath) as f:
 		for line in f:
-			size.append(int(line))
+			if line != '\n':
+				size.append(int(line))
 	size=np.array(size)
 	print("# malloc(): %d"%len(size))
 	print("max (bytes): %d"%size.max())
@@ -22,7 +23,8 @@ def profile_memcpy(path):
 	size=[]
 	with open(filepath) as f:
 		for line in f:
-			size.append(int(line))
+			if line != '\n':
+			    size.append(int(line))
 	size=np.array(size)
 	print("# memcpy(): %d"%len(size))
 	print("max (bytes): %d"%size.max())
@@ -46,8 +48,8 @@ def info_leak(filepath):
 	print("info leak: %d"%leak)
 
 if __name__ == '__main__':
-	#profile_malloc(sys.argv[1])
-	#profile_memcpy(sys.argv[1])
-	#plt.show()
-	info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak.log")
+	profile_malloc(sys.argv[1])
+	profile_memcpy(sys.argv[1])
+	plt.show()
+	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak.log")
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak-eraser.log")
