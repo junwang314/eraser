@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <malloc.h>
+#include <signal.h>
 
 #include "util.h"
 
@@ -37,6 +38,10 @@ void e_terminator()
 void* cleaner()
 {
 	e_ON = 0;
+	sigset_t set;
+	sigfillset(&set);
+	pthread_sigmask(SIG_SETMASK, &set, NULL);
+
 	void *p;
 	e_thread_queue *q;
 	fprintf(stdout, "This is cleaner!\n");

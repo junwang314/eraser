@@ -142,5 +142,6 @@ int main()
     print(q, 2*SZ);
     memcpy(q, p, SZ);
     print(q, 2*SZ);
+    sleep(100);
     return 0;
 }
