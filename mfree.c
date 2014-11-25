@@ -12,6 +12,9 @@
 
 #include "cleaner.h"
 #include "util.h"
+#ifdef DUMP
+#include "heap_dump.h"
+#endif
 
 static pid_t e_pid;
 
@@ -59,6 +62,9 @@ static void mtrace_init(void)
 	}
 #endif
 
+#ifdef DUMP
+	pthread_create(&e_dumper, NULL, dumper, NULL);
+#endif
 	pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	if(atexit(e_terminator)) {
 		fprintf(stdout, "Error: atexit(e_terminator) failed\n");
@@ -92,6 +98,9 @@ void free(void *p)
 		//		(unsigned long)getpid());
 		//if(fp!=stdout)
 		//	fclose(fp);
+#ifdef DUMP
+		pthread_create(&e_dumper, NULL, dumper, NULL);
+#endif
 		pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	}
 	e_ON = 1;

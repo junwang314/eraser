@@ -48,8 +48,9 @@ def info_leak(filepath):
 	print("info leak: %d"%leak)
 
 if __name__ == '__main__':
-	profile_malloc(sys.argv[1])
-	profile_memcpy(sys.argv[1])
-	plt.show()
+	#profile_malloc(sys.argv[1])
+	#profile_memcpy(sys.argv[1])
+	#plt.show()
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak.log")
+	info_leak("/var/log/apache2/leak.log")
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak-eraser.log")
