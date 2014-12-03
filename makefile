@@ -17,10 +17,13 @@ mfree_fork.so:mfree.c cleaner.h util.h
 
 #########################################################################
 # SPEC
-SPEC:mfree_spec.so
+SPEC:mfree_spec.so mfree_spec_inline.so
 
 mfree_spec.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DERASER -DSPEC -g -o mfree_spec.so mfree.c $(LDFLAGS)
+
+mfree_spec_inline.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DINLINE -DSPEC -g -o mfree_spec_inline.so mfree.c $(LDFLAGS)
 
 #########################################################################
 # heap dump
