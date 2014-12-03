@@ -16,7 +16,9 @@ typedef struct e_thread_queue {
 } e_thread_queue;
 
 static __thread int e_ON = 1;
+#ifdef ERASER
 static __thread e_thread_queue *e_thq = NULL;
+#endif
 
 static e_thread_queue *e_thread_queue_head = NULL;
 

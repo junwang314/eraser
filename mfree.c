@@ -24,11 +24,14 @@ static void mtrace_init(void)
 
 	e_pid = getpid();
 
+#if defined(ERASER) || defined(INLINE)
 	real_free = dlsym(RTLD_NEXT, "free");
 	if (NULL == real_free) {
 		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
 	}
+#endif
 
+#ifdef PADDING
 	real_malloc = dlsym(RTLD_NEXT, "malloc");
 	if (NULL == real_malloc) {
 		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
@@ -36,7 +39,9 @@ static void mtrace_init(void)
 	if (fmalloc==NULL) {
 		fmalloc = fopen("malloc.log", "a");
 	}
+#endif
 
+#ifdef LEAK
 	real_memcpy = dlsym(RTLD_NEXT, "memcpy");
 	if (NULL == real_memcpy) {
 		fprintf(stdout, "Error in `dlsym`: %s\n", dlerror());
@@ -47,6 +52,7 @@ static void mtrace_init(void)
 	if (fleak==NULL) {
 		fleak = fopen("leak.log", "a");
 	}
+#endif
 
 	/* For SPEC benchmark, some processes for counting purpose are also
 	 * created. We do not do heap erasing for them.
@@ -62,7 +68,9 @@ static void mtrace_init(void)
 	}
 #endif
 
+#ifdef ERASER
 	pthread_create(&e_cleaner, NULL, cleaner, NULL);
+#endif
 	if(atexit(e_terminator)) {
 		fprintf(stdout, "Error: atexit(e_terminator) failed\n");
 	}
@@ -75,6 +83,7 @@ int gettid(void)
 	return syscall(SYS_gettid);
 }
 
+#if defined(ERASER) || defined(INLINE)
 void free(void *p)
 {
 	if(real_free == NULL) {
@@ -85,7 +94,7 @@ void free(void *p)
 	e_ON = 0;
 	if(e_pid != getpid()) {
 		e_pid = getpid();
-#ifdef DDEBUG
+#ifdef DEBUG
 		fprintf(stderr, "Process fork detected. PID=%d\n", e_pid);
 		fflush(stderr);
 #endif
@@ -102,6 +111,14 @@ void free(void *p)
 	e_ON = 1;
 #endif
 
+#ifdef INLINE
+	if (p) {
+		memset(p, 0x06, malloc_usable_size(p));
+	}
+    real_free(p);
+#endif
+
+#ifdef ERASER
 	if (!p) {
 		return;
 	}
@@ -117,9 +134,12 @@ void free(void *p)
 	e_queue_enque(p, e_thq);
 	//printf("%d/%d: free(%p)\n", getpid(), gettid(), p);
 	e_ON = 1;
+#endif
 	return;
 }
+#endif
 
+#ifdef PADDING
 void *malloc(size_t size)
 {
 	if(real_malloc == NULL) {
@@ -133,9 +153,17 @@ void *malloc(size_t size)
 	fprintf(fmalloc, "%d\n", size);
 #endif
 	e_ON = 1;
-	return real_malloc(size);
+	void *ret = real_malloc(size*2);
+#ifndef ERASER
+	if (ret) {
+		memset(ret+size, 0x06, size);
+	}
+#endif
+	return ret;
 }
+#endif
 
+#ifdef LEAK
 void *memcpy(void *dest, const void *src, size_t n)
 {
 	if(real_memcpy == NULL) {
@@ -167,3 +195,4 @@ void *memcpy(void *dest, const void *src, size_t n)
 	e_ON = 1;
 	return real_memcpy(dest, src, n);
 }
+#endif

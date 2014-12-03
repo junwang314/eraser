@@ -142,6 +142,9 @@ int main()
     print(q, 2*SZ);
     memcpy(q, p, SZ);
     print(q, 2*SZ);
+
+	void *ret;
+	printf("void *ret=%p\nret+1=%p\n(int *)ret+1=%p\n(short *)ret+1=%p\n(char *)ret+1=%p\n", ret, ret+1, (int *)ret+1, (short *)ret+1,  (char *)ret+1);
     sleep(100);
     return 0;
 }

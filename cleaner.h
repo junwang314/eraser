@@ -6,9 +6,15 @@
 #include "util.h"
 
 static pthread_t e_cleaner;
+#if defined(ERASER) || defined(INLINE)
 static void* (*real_free)(void *) = NULL;
+#endif
+#ifdef PADDING
 static void* (*real_malloc)(size_t) = NULL;
+#endif
+#ifdef LEAK
 static void* (*real_memcpy)(void *, const void *, size_t) = NULL;
+#endif
 static int e_exit = 0;
 
 static FILE* fmalloc = NULL;
@@ -23,7 +29,9 @@ void e_terminator()
 	fprintf(stdout, "Eraser about to exit...\n");
 #endif
 	e_exit = 1;
-	pthread_join(e_cleaner, NULL);
+	if (e_cleaner) {
+		pthread_join(e_cleaner, NULL);
+	}
     if (fmalloc) {
         fclose(fmalloc);
     }
@@ -37,6 +45,7 @@ void e_terminator()
 	e_ON = 1;
 }
 
+#ifdef ERASER
 void* cleaner()
 {
 	e_ON = 0;
@@ -66,3 +75,4 @@ void* cleaner()
 	}
 	return NULL;
 }
+#endif
