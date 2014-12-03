@@ -19,7 +19,9 @@ void e_terminator()
 {
 	e_ON = 0;
 
+#ifdef DEBUG
 	fprintf(stdout, "Eraser about to exit...\n");
+#endif
 	e_exit = 1;
 	pthread_join(e_cleaner, NULL);
     if (fmalloc) {
@@ -44,7 +46,9 @@ void* cleaner()
 
 	void *p;
 	e_thread_queue *q;
+#ifdef DEBUG
 	fprintf(stdout, "This is cleaner!\n");
+#endif
 	while(!e_thread_queue_head) {
 		sleep(0);
 	}
@@ -52,7 +56,7 @@ void* cleaner()
 		//fprintf(stdout, "cleaner loop...\n");
 		for (q = e_thread_queue_head; q!=NULL; q=q->next) {
 			if ((p = e_queue_deque(q))) {
-				//memset(p, 0x06, malloc_usable_size(p));
+				memset(p, 0x06, malloc_usable_size(p));
     			real_free(p);
 			}
 			else {

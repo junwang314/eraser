@@ -7,13 +7,13 @@ test:test.c
 	gcc -Wl,--no-as-needed -ldl -g test.c
 
 mfree.so:mfree.c cleaner.h util.h
-	gcc $(CFLAGS) -g -o mfree.so mfree.c 
+	gcc $(CFLAGS) -g -o mfree.so mfree.c  -DDEBUG
 
 mfree_fork.so:mfree.c cleaner.h util.h
-	gcc $(CFLAGS) -g -o mfree_fork.so mfree.c -DFORK
+	gcc $(CFLAGS) -g -o mfree_fork.so mfree.c -DFORK -DDEBUG 
 
 mfree_fork_dump.so:mfree.c cleaner.h util.h heap_dump.h
-	gcc $(CFLAGS) -DFORK -DDUMP -g -o mfree_fork_dump.so mfree.c $(LDFLAGS)
+	gcc $(CFLAGS) -DFORK -DDUMP -DDEBUG -g -o mfree_fork_dump.so mfree.c $(LDFLAGS)
 
 mfree_spec.so:mfree.c cleaner.h util.h
 	gcc $(CFLAGS) -g -o mfree_spec.so mfree.c -DSPEC

@@ -4,15 +4,15 @@
 #include<error.h>
 #include <sys/param.h> /* for MAXPATHLEN */
 
-static pthread_t e_dumper;
+//static pthread_t e_dumper;
 
-int dump_heap(int pid)
+int heap_dump(int pid)
 {
 	FILE *f;
 	char mapsfilename[PATH_MAX];
 	sprintf(mapsfilename, "/proc/%d/maps", pid);
 	if ((f = fopen (mapsfilename, "r")) == NULL) {
-		printf ("Could not open %s\n", mapsfilename);
+		fprintf (stderr, "Could not open %s\n", mapsfilename);
 		return -1;
 	}
 
@@ -26,7 +26,7 @@ int dump_heap(int pid)
 		mapname[0] = '\0';
 		sscanf(buf, "%lx-%lx %4s %lx %5s %ld %s", &begin, &end, perm,
 				&foo, dev, &inode, mapname);
-		printf("%lx, %lx, %s\n", begin, end, mapname);
+		fprintf(stderr, "%lx, %lx, %s\n", begin, end, mapname);
 		if (strcmp(mapname, "[heap]")==0) {
 			addr = begin;
 			endaddr = end;
@@ -41,26 +41,31 @@ int dump_heap(int pid)
 
 	char dumpfilename[PATH_MAX];
 	static int i=0;
-	sprintf(dumpfilename, "heap_dump.%d.%d", pid, i++);
-	FILE *dump = fopen(dumpfilename, "w+");
+	sprintf(dumpfilename, "/var/www/dump/%d.%d.dump", i++, pid);
+	FILE *dump;
+	if ((dump = fopen(dumpfilename, "w+")) == NULL) {
+		fprintf (stderr, "Could not open %s\n", dumpfilename);
+		return -1;
+	}
 	fwrite((void *)addr, 1, endaddr-addr, dump);
+	//fprintf(dump, "test");
 	fclose(dump);
 	return 0;
 }
 
-void *dumper()
-{
-	e_ON = 0;
-	sigset_t set;
-	sigfillset(&set);
-	pthread_sigmask(SIG_SETMASK, &set, NULL);
-
-	while (!e_exit) {
-		sleep(20);
-		dump_heap(getpid());
-	}
-	return NULL;
-}
+//void *dumper()
+//{
+//	e_ON = 0;
+//	sigset_t set;
+//	sigfillset(&set);
+//	pthread_sigmask(SIG_SETMASK, &set, NULL);
+//
+//	while (!e_exit) {
+//		sleep(20);
+//		dump_heap(getpid());
+//	}
+//	return NULL;
+//}
 
 //int main(){
 //

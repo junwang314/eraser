@@ -30,6 +30,7 @@ def profile_memcpy(path):
 	print("max (bytes): %d"%size.max())
 	print("min (bytes): %d"%size.min())
 	print("mean (bytes): %d"%size.mean())
+	print("total (bytes): %d"%size.sum())
 	plt.figure()
 	plt.hist(size, 10, color='b', alpha=0.5);
 	plt.title("memcpy")
@@ -48,9 +49,9 @@ def info_leak(filepath):
 	print("info leak: %d"%leak)
 
 if __name__ == '__main__':
-	#profile_malloc(sys.argv[1])
-	#profile_memcpy(sys.argv[1])
+	profile_malloc(sys.argv[1])
+	profile_memcpy(sys.argv[1])
 	#plt.show()
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak.log")
-	info_leak("/var/log/apache2/leak.log")
+	#info_leak("/var/log/apache2/leak.log")
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak-eraser.log")

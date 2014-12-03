@@ -49,7 +49,9 @@ e_thread_queue* e_get_thread_queue()
 		q->next = oldhead;
 	} while(!__sync_bool_compare_and_swap(&e_thread_queue_head, oldhead, q));
 	e_thread_queue_init(q, self);
-	fprintf(stdout, "%s: %lu, q=%p\n", __func__, self, q);
+#ifdef DEBUG
+	fprintf(stderr, "%s: %lu, q=%p\n", __func__, self, q);
+#endif
 	return q;
 }
 
@@ -63,7 +65,9 @@ void e_queue_enque(void *p, e_thread_queue *q)
 {
 	while (q->produceCount - q->consumeCount >= QUEUE_SIZE) {
 		//sched_yeild();
+#ifdef DEBUG
 		fprintf(stdout, "%s: queue full\n", __func__);
+#endif
 		sleep(0);
 	} 
 	q->queue[toIndex(q->produceCount)] = p;

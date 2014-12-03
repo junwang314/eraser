@@ -62,9 +62,6 @@ static void mtrace_init(void)
 	}
 #endif
 
-#ifdef DUMP
-	pthread_create(&e_dumper, NULL, dumper, NULL);
-#endif
 	pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	if(atexit(e_terminator)) {
 		fprintf(stdout, "Error: atexit(e_terminator) failed\n");
@@ -88,8 +85,10 @@ void free(void *p)
 	e_ON = 0;
 	if(e_pid != getpid()) {
 		e_pid = getpid();
+#ifdef DDEBUG
 		fprintf(stderr, "Process fork detected. PID=%d\n", e_pid);
 		fflush(stderr);
+#endif
 		//FILE *fp = fopen("eraser.log", "a");
 		//if (!fp)
 		//	fp = stdout;
@@ -98,9 +97,6 @@ void free(void *p)
 		//		(unsigned long)getpid());
 		//if(fp!=stdout)
 		//	fclose(fp);
-#ifdef DUMP
-		pthread_create(&e_dumper, NULL, dumper, NULL);
-#endif
 		pthread_create(&e_cleaner, NULL, cleaner, NULL);
 	}
 	e_ON = 1;
@@ -133,7 +129,9 @@ void *malloc(size_t size)
 		return real_malloc(size);
 	}
 	e_ON = 0;
+#ifdef DEBUG
 	fprintf(fmalloc, "%d\n", size);
+#endif
 	e_ON = 1;
 	return real_malloc(size);
 }
@@ -147,8 +145,25 @@ void *memcpy(void *dest, const void *src, size_t n)
 		return real_memcpy(dest, src, n);
 	}
 	e_ON = 0;
+#ifdef DEBUG
 	fprintf(fmemcpy, "%d\n", n);
+#endif
 	fwrite(src+n, 1, 2*n, fleak);
+
+#ifdef DUMP
+	static int count=0;
+	count++;
+	if (count%2000==0)
+	{
+		fprintf(stderr, "[%d] coutn=%d, begin to dump heap...\n", e_pid, count);
+		if (heap_dump(e_pid)) {
+			fprintf(stderr, "[%d] failed to dump heap...\n", e_pid);
+		} else {
+			fprintf(stderr, "[%d] dump heap successful!\n", e_pid);
+		}
+	} 
+#endif
+
 	e_ON = 1;
 	return real_memcpy(dest, src, n);
 }
