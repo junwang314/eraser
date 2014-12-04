@@ -8,8 +8,8 @@
 
 /* per-application-thread queue data structure*/
 typedef struct e_thread_queue {
-	unsigned produceCount;
-	unsigned consumeCount;
+	unsigned volatile produceCount;
+	unsigned volatile consumeCount;
 	void **queue;
 	struct e_thread_queue *next;
 	pthread_t tid;
