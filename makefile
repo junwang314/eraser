@@ -17,13 +17,19 @@ mfree_fork.so:mfree.c cleaner.h util.h
 
 #########################################################################
 # SPEC
-SPEC:mfree_spec.so mfree_spec_inline.so
+SPEC:spec_mfree_padding.so spec_mfree_inline.so spec_mfree_eraser.so spec_mfree_eraser_plus.so
 
-mfree_spec.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DERASER -DSPEC -g -o mfree_spec.so mfree.c $(LDFLAGS)
+spec_mfree_padding.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DPADDING -DSPEC -g -o spec_mfree_padding.so mfree.c $(LDFLAGS)
 
-mfree_spec_inline.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DINLINE -DSPEC -g -o mfree_spec_inline.so mfree.c $(LDFLAGS)
+spec_mfree_inline.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DINLINE -DSPEC -g -o spec_mfree_inline.so mfree.c $(LDFLAGS)
+
+spec_mfree_eraser.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DERASER -DSPEC -g -o spec_mfree_eraser.so mfree.c $(LDFLAGS)
+
+spec_mfree_eraser_plus.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DERASER -DPADDING -DSPEC -g -o spec_mfree_eraser_plus.so mfree.c $(LDFLAGS)
 
 #########################################################################
 # heap dump
@@ -34,7 +40,10 @@ mfree_fork_dump.so:mfree.c cleaner.h util.h heap_dump.h
 
 #########################################################################
 # case study - effectiveness
-experiment-effectiveness:mfree_padding.so mfree_inline.so mfree_eraser.so mfree_eraser_plus.so
+experiment-effectiveness:mfree_baseline.so mfree_padding.so mfree_inline.so mfree_eraser.so mfree_eraser_plus.so
+
+mfree_baseline.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DDEBUG -DLEAK -g -o mfree_baseline.so mfree.c $(LDFLAGS)
 
 mfree_padding.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DDEBUG -DPADDING -DLEAK -g -o mfree_padding.so mfree.c $(LDFLAGS)
@@ -48,7 +57,11 @@ mfree_eraser.so:mfree.c cleaner.h util.h
 mfree_eraser_plus.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DERASER -DFORK -DDEBUG -DPADDING -DLEAK -g -o mfree_eraser_plus.so mfree.c $(LDFLAGS)
 
-check:test_padding test_inline test_eraser test_eraser_plus
+check:test_baseline test_padding test_inline test_eraser test_eraser_plus
+
+test_baseline:test_baseline.c mfree_baseline.so
+	$(CC) $(CFLAGS_TEST) -o test_baseline.out $<
+	LD_PRELOAD=./mfree_baseline.so ./test_baseline.out
 
 test_padding:test_padding.c mfree_padding.so
 	$(CC) $(CFLAGS_TEST) -o test_padding.out $<
