@@ -3,7 +3,7 @@ CFLAGS  = -Wall -O2 -shared -fPIC -march=native
 LDFLAGS = -ldl -pthread # "-ldl" is for dlsym().
 CFLAGS_TEST = -Wl,--no-as-needed -ldl -g
 
-all:test mfree.so mfree_fork.so SPEC heap_dump experiment
+all:test mfree.so mfree_fork.so SPEC heap_dump experiment-effectiveness experiment-performance
 
 #########################################################################
 test:test.c
@@ -33,8 +33,8 @@ mfree_fork_dump.so:mfree.c cleaner.h util.h heap_dump.h
 
 
 #########################################################################
-# case study
-experiment:mfree_padding.so mfree_inline.so mfree_eraser.so mfree_eraser_plus.so
+# case study - effectiveness
+experiment-effectiveness:mfree_padding.so mfree_inline.so mfree_eraser.so mfree_eraser_plus.so
 
 mfree_padding.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DDEBUG -DPADDING -DLEAK -g -o mfree_padding.so mfree.c $(LDFLAGS)
@@ -65,6 +65,22 @@ test_eraser:test_eraser.c mfree_eraser.so
 test_eraser_plus:test_eraser_plus.c mfree_eraser_plus.so
 	$(CC) $(CFLAGS_TEST) -o test_eraser_plus.out $<
 	LD_PRELOAD=./mfree_eraser_plus.so ./test_eraser_plus.out 
+
+#########################################################################
+# case study - performance
+experiment-performance:perf_mfree_padding.so perf_mfree_inline.so perf_mfree_eraser.so perf_mfree_eraser_plus.so
+
+perf_mfree_padding.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DPADDING -g -o perf_mfree_padding.so mfree.c $(LDFLAGS)
+
+perf_mfree_inline.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DINLINE -g -o perf_mfree_inline.so mfree.c $(LDFLAGS)
+
+perf_mfree_eraser.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DERASER -DFORK -g -o perf_mfree_eraser.so mfree.c $(LDFLAGS)
+
+perf_mfree_eraser_plus.so:mfree.c cleaner.h util.h
+	$(CC) $(CFLAGS) -DERASER -DFORK -DPADDING -g -o perf_mfree_eraser_plus.so mfree.c $(LDFLAGS)
 
 #########################################################################
 run:all

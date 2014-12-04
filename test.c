@@ -145,6 +145,9 @@ int main()
 
 	void *ret;
 	printf("void *ret=%p\nret+1=%p\n(int *)ret+1=%p\n(short *)ret+1=%p\n(char *)ret+1=%p\n", ret, ret+1, (int *)ret+1, (short *)ret+1,  (char *)ret+1);
+
+	void *P[3];
+	printf("%p, %p, %p, %d\n", P[0], P[1], P[2], sizeof(P)/sizeof(P[0]));
     sleep(100);
     return 0;
 }

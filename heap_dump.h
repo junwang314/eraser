@@ -5,6 +5,42 @@
 #include <sys/param.h> /* for MAXPATHLEN */
 
 //static pthread_t e_dumper;
+static void* heap_start = NULL;
+
+
+int retrieve_heap_start(pid_t pid)
+{
+	FILE *f;
+	char mapsfilename[PATH_MAX];
+	sprintf(mapsfilename, "/proc/%d/maps", pid);
+	if ((f = fopen (mapsfilename, "r")) == NULL) {
+		fprintf (stderr, "Could not open %s\n", mapsfilename);
+		return -1;
+	}
+
+	char buf[PATH_MAX+100], perm[5], dev[6], mapname[PATH_MAX];
+	unsigned long begin, end, inode, foo;
+	unsigned long addr=0, endaddr=0;
+
+	while(!feof(f)) {
+		if(fgets(buf, sizeof(buf), f) == 0)
+			break;
+		mapname[0] = '\0';
+		sscanf(buf, "%lx-%lx %4s %lx %5s %ld %s", &begin, &end, perm,
+				&foo, dev, &inode, mapname);
+#ifdef DEBUG
+		fprintf(stderr, "%lx, %lx, %s\n", begin, end, mapname);
+#endif
+		if (strcmp(mapname, "[heap]")==0) {
+			addr = begin;
+			endaddr = end;
+			break;
+		}
+	}
+	fclose(f);
+	heap_start = (void *)addr;
+	return 0;
+}
 
 int heap_dump(int pid)
 {

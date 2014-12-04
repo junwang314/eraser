@@ -40,5 +40,8 @@ int main()
     p = (unsigned char *)malloc(SZ);
     printf("malloc:\t");
     print(p, SZ);
+
+	char buf[1024];
+	memcpy(buf, p, 1024);
     return 0;
 }

@@ -19,7 +19,7 @@ static int e_exit = 0;
 
 static FILE* fmalloc = NULL;
 static FILE* fmemcpy = NULL;
-static FILE* fleak = NULL;
+static FILE* fleak[3];
 
 void e_terminator()
 {
@@ -38,9 +38,12 @@ void e_terminator()
     if (fmemcpy) {
         fclose(fmemcpy);
     }
-    if (fleak) {
-        fclose(fleak);
-    }
+	int i;
+	for (i=0; i<sizeof(fleak)/sizeof(fleak[0]); i++) {
+		if (fleak[i]) {
+			fclose(fleak[i]);
+		}
+	}
 
 	e_ON = 1;
 }

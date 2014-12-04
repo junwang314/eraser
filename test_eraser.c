@@ -30,8 +30,11 @@ int main()
     }
     printf("init:\t");
     print(p, SZ);
+	char buf[1024];
+	memcpy(buf, p, 1024);
 
     printf("malloc_usable_size=%d\n", malloc_usable_size(p));
+	printf("p=%p, brk=%p, size=%d\n", p, sbrk(0), sbrk(0)-(void *)p);
     free(p);
     printf("free:\t");
     print(p, SZ);

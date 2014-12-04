@@ -9,12 +9,11 @@
 #include <string.h>
 #include <malloc.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "cleaner.h"
 #include "util.h"
-#ifdef DUMP
 #include "heap_dump.h"
-#endif
 
 static pid_t e_pid;
 
@@ -49,8 +48,13 @@ static void mtrace_init(void)
 	if (fmemcpy==NULL) {
 		fmemcpy = fopen("memcpy.log", "a");
 	}
-	if (fleak==NULL) {
-		fleak = fopen("leak.log", "a");
+	int i;
+	for (i=0; i<sizeof(fleak)/sizeof(fleak[0]); i++) {
+		if (fleak[i]==NULL) {
+			char filename[16];
+			sprintf(filename, "leak-%d.log", i);
+			fleak[i] = fopen(filename, "a");
+		}
 	}
 #endif
 
@@ -176,7 +180,44 @@ void *memcpy(void *dest, const void *src, size_t n)
 #ifdef DEBUG
 	fprintf(fmemcpy, "%d\n", n);
 #endif
-	fwrite(src+n, 1, 2*n, fleak);
+	if (heap_start==NULL) {
+		int ret = retrieve_heap_start(getpid());
+		assert(ret == 0);
+	}
+	void *brk = sbrk(0);
+	//fprintf(stderr, "heap_start=%p, brk=%p, src=%p, src+n=%p\n", heap_start, brk, src, src+n);
+	if (src>=heap_start && src<brk) {
+		if (src+n+1024>brk) {
+			fwrite(src+n, 1, brk-src-n, fleak[0]);
+		} else {
+			fwrite(src+n, 1, 1024, fleak[0]);
+		}
+
+		if (src+n+1024*32>brk) {
+			fwrite(src+n, 1, brk-src-n, fleak[1]);
+		} else {
+			fwrite(src+n, 1, 1024*32, fleak[1]);
+		}
+
+		if (src+n+1024*64>brk) {
+			fwrite(src+n, 1, brk-src-n, fleak[2]);
+		} else {
+			fwrite(src+n, 1, 1024*64, fleak[2]);
+		}
+	}
+	//if (src+n+1024>brk) {
+	//	fwrite(src+n, 1, n, fleak[0]);
+	//	fwrite(src+n, 1, n, fleak[1]);
+	//	fwrite(src+n, 1, n, fleak[2]);
+	//} else {
+	//	fwrite(src+n, 1, 1024, fleak[0]);
+	//	if (src+n+1024*64>brk) {
+	//		fwrite(src+n, 1, 1024*32, fleak[1]);
+	//		fwrite(src+n, 1, 1024*32, fleak[3]);
+	//	} else {
+	//		fwrite(src+n, 1, 1024*64, fleak[2]);
+	//	}
+	//}
 
 #ifdef DUMP
 	static int count=0;
