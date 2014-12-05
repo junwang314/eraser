@@ -35,12 +35,12 @@ def profile_memcpy(path):
 	plt.hist(size, 10, color='b', alpha=0.5);
 	plt.title("memcpy")
 
-def info_leak_metric_1(filepath):
+def info_leak_metric_1(filepath, do_compress):
 	print("----------metric 1----------")
 	num_00 = 0
 	num_06 = 0
 	with open(filepath, "rb") as f:
-		buf = f.read(4096)
+		buf = f.read(1024*1024)
 		while buf:
 			for byte in buf:
 				#print byte, ord(byte)
@@ -48,7 +48,7 @@ def info_leak_metric_1(filepath):
 					num_00 += 1
 				elif ord(byte) == 6:
 					num_06 += 1
-			buf = f.read(4096)
+			buf = f.read(1024*1024)
 	statinfo = os.stat(filepath)
 	print("file size: %d"%statinfo.st_size)
 	print("0x00 size: %d"%num_00)
@@ -56,20 +56,22 @@ def info_leak_metric_1(filepath):
 	print("info leak ratio (only consider 0x06): %.1f%%"%(100-num_06*100.0/statinfo.st_size))
 	print("info leak ratio (consider 0x00 and 0x06): %.1f%%"%(100-(num_00+num_06)*100.0/statinfo.st_size))
 
-	#size = statinfo.st_size
-	#os.system("gzip -c -f "+filepath+" >/tmp/leak.log.gz")
-	#statinfo = os.stat("/tmp/leak.log.gz")
-	#print(".gz file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
+	if not do_compress:
+		return
+	size = statinfo.st_size
+	os.system("gzip -c -f "+filepath+" >/tmp/leak.log.gz")
+	statinfo = os.stat("/tmp/leak.log.gz")
+	print(".gz file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
 
-	#os.system("bzip2 -c -f "+filepath+">/tmp/leak.log.bz2")
-	#statinfo = os.stat("/tmp/leak.log.bz2")
-	#print(".bz2 file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
+	os.system("bzip2 -c -f "+filepath+">/tmp/leak.log.bz2")
+	statinfo = os.stat("/tmp/leak.log.bz2")
+	print(".bz2 file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
 
-	#os.system("xz -c -f "+filepath+">/tmp/leak.log.xz")
-	#statinfo = os.stat("/tmp/leak.log.xz")
-	#print(".xz file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
+	os.system("xz -c -f "+filepath+">/tmp/leak.log.xz")
+	statinfo = os.stat("/tmp/leak.log.xz")
+	print(".xz file size: %d (compress ratio %.1f%%)"%(statinfo.st_size, statinfo.st_size*100.0/size))
 
-def info_leak_metric_2(path):
+def info_leak_metric_2(filepath):
 	'''
 	firstname=Great1028330&lastname=User1028330&nickname=user1028330&email=Great1028330.User1028330%40rubis.com&password=password1028330
 	'''
@@ -126,18 +128,33 @@ def info_leak_metric_2(path):
 						if passwd.has_key(uid):
 							credential.append((item, "password"+uid))
 		return (leftover, credential)
+	
+	def get_unique(collection):
+		unique = {}
+		for item in collection:
+			unique[item] = True
+		return unique
 
-	leak = find_leak(path+"/leak-2.log")
+	leak = find_leak(filepath)
 	ids = retrieve_ids("/tmp/userid.txt.1")
 	(leftover, credential) = search_leftover(leak, ids)
+	unique_leftover = get_unique(leftover)
+	unique_credential = get_unique(credential)
 	print("sensitive data leftover (%d)"%(len(leftover)))
+	print("sensitive data leftover unique (%d)"%(len(unique_leftover)), unique_leftover.keys())
 	print("credential leftover (%d)"%(len(credential)))
+	print("credential leftover unique (%d)"%(len(unique_credential)), unique_credential.keys())
 		
 
 def info_leak(path):
-	#info_leak_metric_1(path+"/leak.log.1")
-	info_leak_metric_1(path+"/leak-0.log")
-	info_leak_metric_2(path)
+	#info_leak_metric_1(path+"/leak-0.log", False)
+	#info_leak_metric_1(path+"/leak-1.log", True)
+	#info_leak_metric_1(path+"/leak-2.log", False)
+	#info_leak_metric_1(path+"/leak-3.log", False)
+	info_leak_metric_2(path+"/leak-0.log")
+	info_leak_metric_2(path+"/leak-1.log")
+	info_leak_metric_2(path+"/leak-2.log")
+	info_leak_metric_2(path+"/leak-3.log")
 
 if __name__ == '__main__':
 	#profile_malloc(sys.argv[1])
@@ -147,3 +164,4 @@ if __name__ == '__main__':
 	#info_leak("/var/log/apache2/leak.log")
 	#info_leak("/home/jun/src/ArbiterThreadApp/download/webserver-1.2.2/cherokee/leak-eraser.log")
 	info_leak("/var/log/apache2/")
+	#info_leak(sys.argv[1])

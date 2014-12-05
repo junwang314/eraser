@@ -148,6 +148,12 @@ int main()
 
 	void *P[3];
 	printf("%p, %p, %p, %d\n", P[0], P[1], P[2], sizeof(P)/sizeof(P[0]));
+
+
+	unsigned int a=1;
+	unsigned int b=2;
+	unsigned int c = a-b;
+	printf("unsigned int 1-2=%u\n", c);
     sleep(100);
     return 0;
 }

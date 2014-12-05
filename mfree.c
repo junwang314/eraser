@@ -187,23 +187,25 @@ void *memcpy(void *dest, const void *src, size_t n)
 	void *brk = sbrk(0);
 	//fprintf(stderr, "heap_start=%p, brk=%p, src=%p, src+n=%p\n", heap_start, brk, src, src+n);
 	if (src>=heap_start && src<brk) {
-		if (src+n+1024>brk) {
+		if (src+n+1024*4>brk) {
 			fwrite(src+n, 1, brk-src-n, fleak[0]);
 		} else {
-			fwrite(src+n, 1, 1024, fleak[0]);
+			fwrite(src+n, 1, 1024*4, fleak[0]);
+		}
+
+		if (src+n+1024*16>brk) {
+			fwrite(src+n, 1, brk-src-n, fleak[1]);
+		} else {
+			fwrite(src+n, 1, 1024*16, fleak[1]);
 		}
 
 		if (src+n+1024*32>brk) {
-			fwrite(src+n, 1, brk-src-n, fleak[1]);
-		} else {
-			fwrite(src+n, 1, 1024*32, fleak[1]);
-		}
-
-		if (src+n+1024*64>brk) {
 			fwrite(src+n, 1, brk-src-n, fleak[2]);
 		} else {
-			fwrite(src+n, 1, 1024*64, fleak[2]);
+			fwrite(src+n, 1, 1024*32, fleak[2]);
 		}
+
+		fwrite(src+n, 1, n, fleak[3]);
 	}
 	//if (src+n+1024>brk) {
 	//	fwrite(src+n, 1, n, fleak[0]);

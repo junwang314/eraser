@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS  = -Wall -O2 -shared -fPIC -march=native 
+CFLAGS  = -Wall -O0 -shared -fPIC -march=native 
 LDFLAGS = -ldl -pthread # "-ldl" is for dlsym().
 CFLAGS_TEST = -Wl,--no-as-needed -ldl -g
 
@@ -20,10 +20,10 @@ mfree_fork.so:mfree.c cleaner.h util.h
 SPEC:spec_mfree_padding.so spec_mfree_inline.so spec_mfree_eraser.so spec_mfree_eraser_plus.so
 
 spec_mfree_padding.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DPADDING -DSPEC -g -o spec_mfree_padding.so mfree.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -DPADDING -DSPEC -g -o spec_mfree_padding.so mfree.c -ldl
 
 spec_mfree_inline.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DINLINE -DSPEC -g -o spec_mfree_inline.so mfree.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -DINLINE -DSPEC -g -o spec_mfree_inline.so mfree.c -ldl
 
 spec_mfree_eraser.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DERASER -DSPEC -g -o spec_mfree_eraser.so mfree.c $(LDFLAGS)
@@ -84,16 +84,20 @@ test_eraser_plus:test_eraser_plus.c mfree_eraser_plus.so
 experiment-performance:perf_mfree_padding.so perf_mfree_inline.so perf_mfree_eraser.so perf_mfree_eraser_plus.so
 
 perf_mfree_padding.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DPADDING -g -o perf_mfree_padding.so mfree.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -DPADDING -g -o perf_mfree_padding.so mfree.c -ldl
 
 perf_mfree_inline.so:mfree.c cleaner.h util.h
-	$(CC) $(CFLAGS) -DINLINE -g -o perf_mfree_inline.so mfree.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -DINLINE -g -o perf_mfree_inline.so mfree.c -ldl
 
 perf_mfree_eraser.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DERASER -DFORK -g -o perf_mfree_eraser.so mfree.c $(LDFLAGS)
 
 perf_mfree_eraser_plus.so:mfree.c cleaner.h util.h
 	$(CC) $(CFLAGS) -DERASER -DFORK -DPADDING -g -o perf_mfree_eraser_plus.so mfree.c $(LDFLAGS)
+
+#########################################################################
+test3.out:test3.c
+	$(CC) $(CFLAGS_TEST) -o test3.out test3.c
 
 #########################################################################
 run:all

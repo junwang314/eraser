@@ -19,7 +19,7 @@ static int e_exit = 0;
 
 static FILE* fmalloc = NULL;
 static FILE* fmemcpy = NULL;
-static FILE* fleak[3];
+static FILE* fleak[4];
 
 void e_terminator()
 {
