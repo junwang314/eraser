@@ -1,0 +1,21 @@
+
+base
+
+163.54
+
+padding
+
+throughput mean is 162.94, stdev is 0.441814440687
+
+
+eraser
+
+throughput mean is 163.44, stdev is 0.0496655480858
+
+eraser plus
+
+163.33
+
+inline
+
+throughput mean is 163.24, stdev is 0.123558353286
